@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
-import ru.mail.polis.justAddAcid.justDAO;
+import ru.mail.polis.justAddAcid.JustDAO;
 
 /**
  * Custom {@link DAO} factory
@@ -55,6 +55,6 @@ public final class DAOFactory {
             throw new IllegalArgumentException("Path is not a directory: " + data);
         }
 
-        return new justDAO();
+        return new JustDAO();
     }
 }
