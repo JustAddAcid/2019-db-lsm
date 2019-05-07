@@ -55,6 +55,6 @@ public final class DAOFactory {
             throw new IllegalArgumentException("Path is not a directory: " + data);
         }
 
-        return new JustDAO(data, MAX_HEAP/ 3);
+        return new JustDAO(data, MAX_HEAP/ 4);
     }
 }

@@ -2,9 +2,10 @@ package ru.mail.polis.justAddAcid;
 
 import java.nio.ByteBuffer;
 
-public class ToByteBuffer {
+public final class Bytes {
 
-    private ToByteBuffer(){}
+    private Bytes() {
+    }
 
     static ByteBuffer fromInt(final int value) {
         final ByteBuffer result = ByteBuffer.allocate(Integer.BYTES);

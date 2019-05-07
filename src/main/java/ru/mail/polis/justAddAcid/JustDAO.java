@@ -9,109 +9,88 @@ import ru.mail.polis.Record;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 public class JustDAO implements DAO {
 
+    private static final String SUFFIX_DAT = ".dat";
+    private static final String SUFFIX_TMP = ".tmp";
+
+    private final File file;
+    private final long flushLimit;
     private MemTable memTable;
-    private final File baseDirectory;
-    private List <SSTable> ssTables;
+    private final Collection<Path> files;
+    private int generation;
 
-    public JustDAO(@NotNull final File baseDirectory, long flushLimit) throws IOException {
-        this.baseDirectory = baseDirectory;
-        this.memTable = new MemTable(this.baseDirectory, flushLimit);
-        this.ssTables = new ArrayList<>();
-        Files.walkFileTree(this.baseDirectory.toPath(), new SimpleFileVisitor<>(){
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                ssTables.add(new SSTable(file.toFile()));
-                return FileVisitResult.CONTINUE;
-            }
-        });
-    }
-
-    private Iterator<Record> ssTablesIterator(@NotNull ByteBuffer from) {
-        final List <Iterator<Row>> sstablesListIter = new ArrayList<>();
-        for (SSTable ssTable : ssTables) {
-            sstablesListIter.add(ssTable.iterator(from));
-        }
-        final Iterator <Row> sstablesIter = Iterators.mergeSorted(sstablesListIter, Row.COMPARATOR);
-
-        
-
-        final Iterator <Row> sstableCollapseIter = Iters.collapseEquals(sstablesIter, Row::getKey);
-//        while (sstablesIter.hasNext()){
-//            System.out.println(sstablesIter.next().toString());
-//        }
-//        System.out.println();
-//        while (sstableCollapseIter.hasNext()){
-//            System.out.println(sstableCollapseIter.next().toString());
-//        }
-        final Iterator <Row> aliveClusters = Iterators.filter(sstableCollapseIter, cluster-> {
-            assert  cluster != null;
-            return !cluster.getRowValue().isTombstone();
-        });
-//        Iterator<Record> ass = Iterators.transform(aliveClusters, cluster->{
-//            assert  cluster != null;
-//            return Record.of(cluster.getKey(), cluster.getRowValue().getData());
-//        });
-//        System.out.println();
-//        while (ass.hasNext()){
-//            System.out.println(ass.next().toString());
-//        }
-        return Iterators.transform(aliveClusters, cluster->{
-            assert  cluster != null;
-            return Record.of(cluster.getKey(), cluster.getRowValue().getData());
-        });
-    }
-
-    private Iterator<Record> memTableIterator(@NotNull ByteBuffer from) throws IOException {
-        /*
-         * Get Alive Clusters form MemTable
-         * */
-        final Iterator <Row> clusters = memTable.iterator(from);
-        final Iterator <Row> aliveClusters = Iterators.filter(clusters, cluster -> {
-            assert cluster != null;
-            return !cluster.getRowValue().isTombstone();
-        });
-        return Iterators.transform(aliveClusters, cluster -> {
-            assert cluster != null;
-            return Record.of(cluster.getKey(), cluster.getRowValue().getData());
-        });
+    public JustDAO(@NotNull final File file, final long flushLimit) throws IOException {
+        this.file = file;
+        assert flushLimit >= 0L;
+        this.flushLimit = flushLimit;
+        memTable = new MemTable();
+        files = new ArrayList<>();
+        Files.walk(file.toPath(), 1)
+                .filter(path -> path.getFileName().toString().endsWith(SUFFIX_DAT))
+                .forEach(files::add);
     }
 
     @NotNull
     @Override
-    public Iterator<Record> iterator(@NotNull ByteBuffer from) throws IOException {
-        final Iterator <Record> memtableIter = memTableIterator(from);
-        final Iterator <Record> sstablesIter = ssTablesIterator(from);
-        final List <Iterator<Record>> iteratorList = new ArrayList<>();
-        iteratorList.add(memtableIter);
-        iteratorList.add(sstablesIter);
+    public Iterator<Record> iterator(@NotNull final ByteBuffer from) throws IOException {
+        final List<Iterator<Cell>> iters = new ArrayList<>();
+        for (final Path path : this.files) {
+            iters.add(new SSTable(path.toFile()).iterator(from));
+        }
 
-        final Iterator <Record> iterator = Iterators.mergeSorted(iteratorList, Record::compareTo);
-        return Iters.collapseEquals(iterator, Record::getKey);
+        iters.add(memTable.iterator(from));
+        final Iterator<Cell> cellIterator = Iters.collapseEquals(
+                Iterators.mergeSorted(iters, Cell.COMPARATOR),
+                Cell::getKey
+        );
+        final Iterator<Cell> alive = Iterators.filter(
+                cellIterator, cell -> {
+                    assert cell != null;
+                    return !cell.getValue().isTombstone();
+                }
+        );
+        return Iterators.transform(alive, cell -> {
+            assert cell != null;
+            return Record.of(cell.getKey(), cell.getValue().getData());
+        });
     }
 
     @Override
-    public void upsert(@NotNull ByteBuffer key, @NotNull ByteBuffer value) throws IOException {
+    public void upsert(@NotNull final ByteBuffer key, @NotNull final ByteBuffer value) throws IOException {
         memTable.upsert(key, value);
+        if (memTable.sizeInBytes() >= flushLimit) {
+            flush();
+        }
     }
 
     @Override
-    public void remove(@NotNull ByteBuffer key) throws IOException {
+    public void remove(@NotNull final ByteBuffer key) throws IOException {
         memTable.remove(key);
+        if (memTable.sizeInBytes() >= flushLimit) {
+            flush();
+        }
     }
 
     @Override
     public void close() throws IOException {
-        WriteToFileHelper.writeToFile(memTable.iterator(ByteBuffer.allocate(0)), baseDirectory, memTable.getGeneration());
+        flush();
+    }
+
+    private void flush() throws IOException {
+        final File tmp = new File(file, generation + SUFFIX_TMP);
+        SSTable.writeToFile(memTable.iterator(ByteBuffer.allocate(0)), tmp);
+        final File dest = new File(file, generation + SUFFIX_DAT);
+        Files.move(tmp.toPath(), dest.toPath(), StandardCopyOption.ATOMIC_MOVE);
+        generation = generation + 1;
+        memTable = new MemTable();
     }
 }
