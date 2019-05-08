@@ -25,11 +25,11 @@ public final class Value implements Comparable<Value> {
     }
 
     public static Value of(final ByteBuffer data) {
-        return new Value(System.currentTimeMillis(), data.duplicate(), false);
+        return new Value(System.nanoTime(), data.duplicate(), false);
     }
 
     public static Value tombstone() {
-        return new Value(System.currentTimeMillis(), null, true);
+        return new Value(System.nanoTime(), null, true);
     }
 
     public boolean isTombstone() {
