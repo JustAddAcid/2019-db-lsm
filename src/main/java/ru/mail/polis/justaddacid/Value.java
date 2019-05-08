@@ -11,7 +11,8 @@ public final class Value implements Comparable<Value> {
     private final boolean isTombstone;
 
     /**
-     * Creates instanse of Cell Value
+     * Creates instanse of Cell Value.
+     *
      * @param timestamp when the data stored
      * @param data to store in value
      * @param isTombstone is the value is removed
@@ -35,8 +36,11 @@ public final class Value implements Comparable<Value> {
         return isTombstone;
     }
 
+
     /**
-     * @return
+     * Gets data from the Value.
+     *
+     * @return data contained in the Cell Value
      */
     public ByteBuffer getData() {
         if (data == null) {

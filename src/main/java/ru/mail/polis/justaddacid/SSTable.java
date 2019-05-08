@@ -20,7 +20,8 @@ public class SSTable implements Table {
     private final ByteBuffer cells;
 
     /**
-     * Creates instance of SSTable and get data from file
+     * Creates instance of SSTable and get data from file.
+     *
      * @param file to get data
      * @throws IOException if I/O error
      */
@@ -47,7 +48,8 @@ public class SSTable implements Table {
     }
 
     /**
-     * Write data to disk
+     * Write data to disk.
+     *
      * @param cells data iterator to write
      * @param to file location
      * @throws IOException if I/O error

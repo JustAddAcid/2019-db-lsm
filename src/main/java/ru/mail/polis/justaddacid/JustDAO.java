@@ -30,7 +30,8 @@ public class JustDAO implements DAO {
     private int generation;
 
     /**
-     * Create persistence DAO
+     * Create persistence DAO.
+     *
      * @param file database location
      * @param flushLimit when is reached -- write to disk
      * @throws IOException if I/O error

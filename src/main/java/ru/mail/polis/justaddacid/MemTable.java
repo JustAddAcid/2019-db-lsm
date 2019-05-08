@@ -18,7 +18,8 @@ public class MemTable implements Table {
     }
 
     /**
-     * Get data iterator from memtable
+     * Get data iterator from memtable.
+     *
      * @param from key to find data
      * @return data iterator
      */
