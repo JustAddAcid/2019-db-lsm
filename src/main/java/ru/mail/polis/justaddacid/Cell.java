@@ -1,4 +1,4 @@
-package ru.mail.polis.justAddAcid;
+package ru.mail.polis.justaddacid;
 
 import org.jetbrains.annotations.NotNull;
 

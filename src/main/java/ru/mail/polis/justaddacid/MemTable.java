@@ -1,4 +1,4 @@
-package ru.mail.polis.justAddAcid;
+package ru.mail.polis.justaddacid;
 
 import com.google.common.collect.Iterators;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +17,11 @@ public class MemTable implements Table {
         map = new TreeMap<>();
     }
 
+    /**
+     * Get data iterator from memtable
+     * @param from key to find data
+     * @return data iterator
+     */
     public final Iterator<Cell> iterator(@NotNull final ByteBuffer from) {
         return Iterators.transform(map.tailMap(from)
                         .entrySet().iterator(),

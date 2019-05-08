@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
-import ru.mail.polis.justAddAcid.JustDAO;
+import ru.mail.polis.justaddacid.JustDAO;
 
 /**
  * Custom {@link DAO} factory.

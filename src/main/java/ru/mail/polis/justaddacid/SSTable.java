@@ -1,4 +1,4 @@
-package ru.mail.polis.justAddAcid;
+package ru.mail.polis.justaddacid;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,6 +19,39 @@ public class SSTable implements Table {
     private final LongBuffer offsets;
     private final ByteBuffer cells;
 
+    /**
+     * Creates instance of SSTable and get data from file
+     * @param file to get data
+     * @throws IOException if I/O error
+     */
+    public SSTable(@NotNull final File file) throws IOException {
+        final long fileSize = file.length();
+        final ByteBuffer mapped;
+        try (
+                FileChannel fc = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
+            assert fileSize <= Integer.MAX_VALUE;
+            mapped = fc.map(FileChannel.MapMode.READ_ONLY, 0L, fileSize).order(ByteOrder.BIG_ENDIAN);
+        }
+        final long rowsValue = mapped.getLong((int) (fileSize - Long.BYTES));
+        assert rowsValue <= Integer.MAX_VALUE;
+        this.rows = (int) rowsValue;
+
+        final ByteBuffer offsetBuffer = mapped.duplicate();
+        offsetBuffer.position(mapped.limit() - Long.BYTES * rows - Long.BYTES);
+        offsetBuffer.limit(mapped.limit() - Long.BYTES);
+        this.offsets = offsetBuffer.slice().asLongBuffer();
+
+        final ByteBuffer cellBuffer = mapped.duplicate();
+        cellBuffer.limit(offsetBuffer.position());
+        this.cells = cellBuffer.slice();
+    }
+
+    /**
+     * Write data to disk
+     * @param cells data iterator to write
+     * @param to file location
+     * @throws IOException if I/O error
+     */
     public static void writeToFile(@NotNull final Iterator<Cell> cells, @NotNull final File to)
             throws IOException {
         try (FileChannel fileChannel = FileChannel.open(
@@ -64,27 +97,6 @@ public class SSTable implements Table {
         }
     }
 
-    public SSTable(@NotNull final File file) throws IOException {
-        final long fileSize = file.length();
-        final ByteBuffer mapped;
-        try (
-                FileChannel fc = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
-            assert fileSize <= Integer.MAX_VALUE;
-            mapped = fc.map(FileChannel.MapMode.READ_ONLY, 0L, fileSize).order(ByteOrder.BIG_ENDIAN);
-        }
-        final long rowsValue = mapped.getLong((int) (fileSize - Long.BYTES));
-        assert rowsValue <= Integer.MAX_VALUE;
-        this.rows = (int) rowsValue;
-
-        final ByteBuffer offsetBuffer = mapped.duplicate();
-        offsetBuffer.position(mapped.limit() - Long.BYTES * rows - Long.BYTES);
-        offsetBuffer.limit(mapped.limit() - Long.BYTES);
-        this.offsets = offsetBuffer.slice().asLongBuffer();
-
-        final ByteBuffer cellBuffer = mapped.duplicate();
-        cellBuffer.limit(offsetBuffer.position());
-        this.cells = cellBuffer.slice();
-    }
 
     @Override
     public long sizeInBytes() {
@@ -111,12 +123,12 @@ public class SSTable implements Table {
     }
 
     @Override
-    public void upsert(@NotNull ByteBuffer key, @NotNull ByteBuffer value) throws IOException {
+    public void upsert(final @NotNull ByteBuffer key,final @NotNull ByteBuffer value) throws IOException {
         throw new UnsupportedOperationException("");
     }
 
     @Override
-    public void remove(@NotNull ByteBuffer key) throws IOException {
+    public void remove(final @NotNull ByteBuffer key) throws IOException {
         throw new UnsupportedOperationException("");
     }
 

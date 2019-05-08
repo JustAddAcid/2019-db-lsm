@@ -1,4 +1,4 @@
-package ru.mail.polis.justAddAcid;
+package ru.mail.polis.justaddacid;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -10,8 +10,14 @@ public final class Value implements Comparable<Value> {
     private final ByteBuffer data;
     private final boolean isTombstone;
 
-    public Value(final long timestamp, final ByteBuffer data, boolean isTombstone) {
-        assert (timestamp >= 0);
+    /**
+     * Creates instanse of Cell Value
+     * @param timestamp when the data stored
+     * @param data to store in value
+     * @param isTombstone is the value is removed
+     */
+    public Value(final long timestamp, final ByteBuffer data, final boolean isTombstone) {
+        assert timestamp >= 0;
         this.timestamp = timestamp;
         this.data = data;
         this.isTombstone = isTombstone;
@@ -29,6 +35,9 @@ public final class Value implements Comparable<Value> {
         return isTombstone;
     }
 
+    /**
+     * @return
+     */
     public ByteBuffer getData() {
         if (data == null) {
             throw new IllegalArgumentException("");
@@ -37,7 +46,7 @@ public final class Value implements Comparable<Value> {
     }
 
     @Override
-    public int compareTo(@NotNull Value o) {
+    public int compareTo(final @NotNull Value o) {
         return -Long.compare(timestamp, o.timestamp);
     }
 
