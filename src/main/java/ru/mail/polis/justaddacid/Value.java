@@ -8,32 +8,32 @@ public final class Value implements Comparable<Value> {
 
     private final long timestamp;
     private final ByteBuffer data;
-    private final boolean isTombstone;
+    private final boolean tombstone;
 
     /**
      * Creates instanse of Cell Value.
      *
      * @param timestamp when the data stored
      * @param data to store in value
-     * @param isTombstone is the value is removed
+     * @param tombstone is the value is removed
      */
-    public Value(final long timestamp, final ByteBuffer data, final boolean isTombstone) {
+    public Value(final long timestamp, final ByteBuffer data, final boolean tombstone) {
         assert timestamp >= 0;
         this.timestamp = timestamp;
         this.data = data;
-        this.isTombstone = isTombstone;
+        this.tombstone = tombstone;
     }
 
     public static Value of(final ByteBuffer data) {
-        return new Value(System.nanoTime(), data.duplicate(), false);
+        return new Value(System.currentTimeMillis(), data.duplicate(), false);
     }
 
     public static Value tombstone() {
-        return new Value(System.nanoTime(), null, true);
+        return new Value(System.currentTimeMillis(), null, true);
     }
 
     public boolean isTombstone() {
-        return isTombstone;
+        return tombstone;
     }
 
 

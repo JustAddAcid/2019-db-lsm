@@ -1,6 +1,8 @@
 package ru.mail.polis.justaddacid;
 
 import org.jetbrains.annotations.NotNull;
+import ru.mail.polis.utils.Bytes;
+import ru.mail.polis.utils.Generation;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,18 +20,23 @@ public class SSTable implements Table {
     private final int rows;
     private final LongBuffer offsets;
     private final ByteBuffer cells;
+    private final long generation;
+    private final File file;
 
     /**
      * Creates instance of SSTable and get data from file.
      *
      * @param file to get data
+     * @param generation of data
      * @throws IOException if I/O error
      */
-    public SSTable(@NotNull final File file) throws IOException {
+    public SSTable(@NotNull final File file, long generation) throws IOException {
+        this.generation = generation;
+        this.file = file;
+
         final long fileSize = file.length();
         final ByteBuffer mapped;
-        try (
-                FileChannel fc = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
+        try (   FileChannel fc = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
             assert fileSize <= Integer.MAX_VALUE;
             mapped = fc.map(FileChannel.MapMode.READ_ONLY, 0L, fileSize).order(ByteOrder.BIG_ENDIAN);
         }
@@ -125,12 +132,12 @@ public class SSTable implements Table {
     }
 
     @Override
-    public void upsert(final @NotNull ByteBuffer key,final @NotNull ByteBuffer value) throws IOException {
+    public void upsert(final @NotNull ByteBuffer key,final @NotNull ByteBuffer value) {
         throw new UnsupportedOperationException("");
     }
 
     @Override
-    public void remove(final @NotNull ByteBuffer key) throws IOException {
+    public void remove(final @NotNull ByteBuffer key) {
         throw new UnsupportedOperationException("");
     }
 
@@ -139,11 +146,11 @@ public class SSTable implements Table {
         int right = rows - 1;
         while (left <= right) {
             final int mid = left + (right - left) / 2;
-            final int cmp = keyAt(mid).compareTo(from);
+            final int cmp = from.compareTo(keyAt(mid));
             if (cmp < 0) {
-                right = mid + 1;
+                right = mid - 1;
             } else if (cmp > 0) {
-                left = mid - 1;
+                left = mid + 1;
             } else {
                 return mid;
             }
@@ -178,7 +185,7 @@ public class SSTable implements Table {
         offset += Long.BYTES;
 
         if (timeStamp < 0) {
-            return new Cell(key.slice(), new Value(-timeStamp, null, true));
+            return new Cell(key.slice(), new Value(-timeStamp, null, true), generation);
         } else {
             final int valueSize = cells.getInt((int) offset);
             offset += Integer.BYTES;
@@ -187,7 +194,11 @@ public class SSTable implements Table {
             value.limit(value.position() + valueSize)
                     .position((int) offset)
                     .limit((int) (offset + valueSize));
-            return new Cell(key.slice(), new Value(timeStamp, value.slice(), false));
+            return new Cell(key.slice(), new Value(timeStamp, value.slice(), false), generation);
         }
+    }
+
+    public File getFile() {
+        return file;
     }
 }

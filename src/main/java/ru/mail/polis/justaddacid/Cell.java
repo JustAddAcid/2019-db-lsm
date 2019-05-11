@@ -9,14 +9,17 @@ public class Cell {
 
     static final Comparator<Cell> COMPARATOR = Comparator
             .comparing(Cell::getKey)
-            .thenComparing(Cell::getValue);
+            .thenComparing(Cell::getValue)
+            .thenComparing(Cell::getGeneration, Comparator.reverseOrder());
 
     private final ByteBuffer key;
     private final Value value;
+    private final long generation;
 
-    public Cell(@NotNull final ByteBuffer key, @NotNull final Value value) {
+    public Cell(@NotNull final ByteBuffer key, @NotNull final Value value, final long generation) {
         this.key = key;
         this.value = value;
+        this.generation = generation;
     }
 
     public ByteBuffer getKey() {
@@ -25,5 +28,9 @@ public class Cell {
 
     Value getValue() {
         return value;
+    }
+
+    public long getGeneration() {
+        return generation;
     }
 }

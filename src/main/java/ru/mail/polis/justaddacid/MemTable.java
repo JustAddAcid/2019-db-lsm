@@ -12,8 +12,10 @@ public class MemTable implements Table {
 
     private final NavigableMap<ByteBuffer, Value> map;
     private long tableSize;
+    private final long generation;
 
-    public MemTable() {
+    public MemTable(final long generation) {
+        this.generation = generation;
         map = new TreeMap<>();
     }
 
@@ -28,7 +30,7 @@ public class MemTable implements Table {
                         .entrySet().iterator(),
                 e -> {
                     assert e != null;
-                    return new Cell(e.getKey(), e.getValue());
+                    return new Cell(e.getKey(), e.getValue(), generation);
                 });
     }
 
