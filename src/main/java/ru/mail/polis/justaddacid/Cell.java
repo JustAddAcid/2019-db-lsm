@@ -16,6 +16,13 @@ public class Cell {
     private final Value value;
     private final long generation;
 
+    /**
+     * Create instance of Cell.
+     *
+     * @param key uniquely identifies the record
+     * @param value record data
+     * @param generation version of data
+     */
     public Cell(@NotNull final ByteBuffer key, @NotNull final Value value, final long generation) {
         this.key = key;
         this.value = value;

@@ -145,7 +145,7 @@ public class JustDAO implements DAO {
         final File dest = new File(file, filename);
         Files.move(tmp.toPath(), dest.toPath(), StandardCopyOption.ATOMIC_MOVE);
 
-        for (SSTable ssTable: ssTables){
+        for (final SSTable ssTable: ssTables){
             Files.delete(ssTable.getFile().toPath());
         }
 

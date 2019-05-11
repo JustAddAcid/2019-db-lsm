@@ -2,7 +2,6 @@ package ru.mail.polis.justaddacid;
 
 import org.jetbrains.annotations.NotNull;
 import ru.mail.polis.utils.Bytes;
-import ru.mail.polis.utils.Generation;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +29,7 @@ public class SSTable implements Table {
      * @param generation of data
      * @throws IOException if I/O error
      */
-    public SSTable(@NotNull final File file, long generation) throws IOException {
+    public SSTable(@NotNull final File file, final long generation) throws IOException {
         this.generation = generation;
         this.file = file;
 
