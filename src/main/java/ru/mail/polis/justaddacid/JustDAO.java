@@ -112,7 +112,9 @@ public class JustDAO implements DAO {
 
     @Override
     public void close() throws IOException {
-        flush();
+        if (memTable.sizeInBytes() > 0) {
+            flush();
+        }
     }
 
     private void flush() throws IOException {
