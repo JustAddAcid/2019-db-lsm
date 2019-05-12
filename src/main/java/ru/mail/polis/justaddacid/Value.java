@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.ByteBuffer;
 
 public final class Value implements Comparable<Value> {
-
     private final long timestamp;
     private final ByteBuffer data;
     private final boolean tombstone;
@@ -35,7 +34,6 @@ public final class Value implements Comparable<Value> {
     public boolean isTombstone() {
         return tombstone;
     }
-
 
     /**
      * Gets data from the Value.

@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class JustDAO implements DAO {
-
     public static final String SUFFIX_DAT = ".dat";
     public static final String SUFFIX_TMP = ".tmp";
     public static final String PREFIX_FILE = "TABLE";
@@ -39,12 +38,12 @@ public class JustDAO implements DAO {
      * @throws IOException if I/O error
      */
     public JustDAO(@NotNull final File file, final long flushLimit) throws IOException {
-        this.file = file;
         assert flushLimit >= 0L;
+        this.file = file;
         this.flushLimit = flushLimit;
-        ssTables = new ArrayList<>();
+        this.ssTables = new ArrayList<>();
 
-        try(Stream<Path> walk = Files.walk(file.toPath(), 1)){
+        try(Stream<Path> walk = Files.walk(file.toPath(), 1)) {
             walk.filter(path -> {
                 final String filename = path.getFileName().toString();
                 return filename.endsWith(SUFFIX_DAT) && filename.startsWith(PREFIX_FILE);
@@ -61,7 +60,7 @@ public class JustDAO implements DAO {
                 }
             });
         }
-        generation ++;
+        generation++;
         memTable = new MemTable(generation);
     }
 
@@ -126,11 +125,11 @@ public class JustDAO implements DAO {
         final String tempFilename = PREFIX_FILE + generation + SUFFIX_TMP;
         final String filename = PREFIX_FILE + generation + SUFFIX_DAT;
 
-        final File tmp = new File(file,  tempFilename);
+        final File tmp = new File(file, tempFilename);
         SSTable.writeToFile(memTable.iterator(ByteBuffer.allocate(0)), tmp);
         final File dest = new File(file, filename);
         Files.move(tmp.toPath(), dest.toPath(), StandardCopyOption.ATOMIC_MOVE);
-        generation ++;
+        generation++;
         memTable = new MemTable(generation);
     }
 
@@ -151,7 +150,7 @@ public class JustDAO implements DAO {
 
         ssTables.clear();
         ssTables.add(new SSTable(dest, generation));
-        generation ++;
+        generation++;
         memTable = new MemTable(generation);
     }
 }

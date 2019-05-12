@@ -3,7 +3,6 @@ package ru.mail.polis.utils;
 import java.nio.ByteBuffer;
 
 public final class Bytes {
-
     private Bytes() {
     }
 

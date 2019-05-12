@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 public interface Table {
-
     long sizeInBytes();
 
     @NotNull
@@ -18,5 +17,4 @@ public interface Table {
             @NotNull ByteBuffer value) throws IOException;
 
     void remove(@NotNull ByteBuffer key) throws IOException;
-
 }

@@ -15,7 +15,6 @@ import java.util.Iterator;
 import java.util.List;
 
 public class SSTable implements Table {
-
     private final int rows;
     private final LongBuffer offsets;
     private final ByteBuffer cells;
@@ -35,7 +34,7 @@ public class SSTable implements Table {
 
         final long fileSize = file.length();
         final ByteBuffer mapped;
-        try (   FileChannel fc = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
+        try (FileChannel fc = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
             assert fileSize <= Integer.MAX_VALUE;
             mapped = fc.map(FileChannel.MapMode.READ_ONLY, 0L, fileSize).order(ByteOrder.BIG_ENDIAN);
         }
@@ -104,7 +103,6 @@ public class SSTable implements Table {
             fileChannel.write(Bytes.fromLong(offsets.size()));
         }
     }
-
 
     @Override
     public long sizeInBytes() {

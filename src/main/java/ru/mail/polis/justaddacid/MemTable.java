@@ -9,14 +9,13 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 public class MemTable implements Table {
-
     private final NavigableMap<ByteBuffer, Value> map;
     private long tableSize;
     private final long generation;
 
     public MemTable(final long generation) {
         this.generation = generation;
-        map = new TreeMap<>();
+        this.map = new TreeMap<>();
     }
 
     /**
@@ -26,11 +25,11 @@ public class MemTable implements Table {
      * @return data iterator
      */
     public final Iterator<Cell> iterator(@NotNull final ByteBuffer from) {
-        return Iterators.transform(map.tailMap(from)
-                        .entrySet().iterator(),
-                e -> {
-                    assert e != null;
-                    return new Cell(e.getKey(), e.getValue(), generation);
+        return Iterators.transform(
+                map.tailMap(from).entrySet().iterator(),
+                entry -> {
+                    assert entry != null;
+                    return new Cell(entry.getKey(), entry.getValue(), generation);
                 });
     }
 
