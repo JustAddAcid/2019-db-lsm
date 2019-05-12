@@ -18,10 +18,16 @@ public final class Generation {
         return fromFileName(file.getName());
     }
 
+    /**
+     * Get generation SSTable from filename.
+     *
+     * @param fileName name of SSTable file
+     * @return generation number
+     */
     public static long fromFileName(final String fileName){
-        Pattern regex = Pattern.compile(JustDAO.PREFIX_FILE + "(\\d+)" + JustDAO.SUFFIX_DAT);
-        Matcher matcher = regex.matcher(fileName);
-        if (matcher.find()){matcher.group(1);
+        final Pattern regex = Pattern.compile(JustDAO.PREFIX_FILE + "(\\d+)" + JustDAO.SUFFIX_DAT);
+        final Matcher matcher = regex.matcher(fileName);
+        if (matcher.find()){
             return Long.parseLong(matcher.group(1));
         }
         return -1L;
